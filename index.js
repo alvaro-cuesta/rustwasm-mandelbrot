@@ -13,6 +13,7 @@ main();
 
 const BENCHMARK_TIMES = 100
 
+const containerElement = document.getElementById('container')
 const canvasElement = document.getElementById('canvas')
 const benchmarkElement = document.getElementById('benchmark')
 const iterationsElement = document.getElementById('iterations')
@@ -40,6 +41,9 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
   }
 
   const put = () => {
+    canvasElement.width = containerElement.offsetWidth
+    canvasElement.height = containerElement.offsetHeight
+
     const imagePtr = draw(canvasElement.width, canvasElement.height, panX, panY, scaleX, ratio, maxIterations)
 
     const length = canvasElement.width * canvasElement.height * 4
@@ -79,6 +83,10 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 
   const onmouseup = (e) => {
     drag = null
+
+    if (canvasElement.width !== containerElement.offsetWidth || canvasElement.height !== containerElement.offsetHeight) {
+      timedPut()
+    }
   }
 
   // FIXME: Doesn't look like it pans correctly

@@ -2,14 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Wasm/Rust</title>
+  <title>Rust WASM Mandelbrot</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body, canvas, div {
+      padding: 0;
+      margin: 0;
+    }
+
+    #container {
+      resize: both;
+      overflow: hidden;
+
+      width: 600px;
+      height: 400px;
+
+      background-color: black;
+    }
+  </style>
 </head>
 <body>
-  <canvas id="canvas" width="600" height="400"></canvas>
-  <br />
-  <input id="iterations" type="number" min="1" step="1" value="10" />
-  <br />
-  <button id="benchmark">Benchmark</button>
+  <div id="container">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div>
+    <input id="iterations" type="number" min="1" step="1" value="10" />
+  </div>
+
+  <div>
+    <button id="benchmark">Benchmark</button>
+  </div>
   <script src="index.js"></script>
 </body>
 </html>

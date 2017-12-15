@@ -28,12 +28,14 @@ pub fn draw(
 ) -> *mut u8 {
     let mut memory: Vec<u8> = Vec::with_capacity((w * h * 4) as usize);
 
-    let x_min = pan_x - scale_x;
+    let r2 = (w as f64) / (h as f64) * ratio;
+
+    let x_min = pan_x - scale_x * r2;
     let y_min = pan_y - scale_x * ratio;
 
     for y in 0..h {
         for x in 0..w {
-            let x_f = x_min + ((x as f64) / (w as f64) * 2f64 * scale_x);
+            let x_f = x_min + ((x as f64) / (w as f64) * 2f64 * scale_x * r2);
             let y_f = y_min + ((y as f64) / (h as f64) * 2f64 * scale_x * ratio);
 
             let iterations = mandelbrot(x_f, y_f, max_iterations);
