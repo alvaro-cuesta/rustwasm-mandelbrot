@@ -63,19 +63,27 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     timedPut()
   }
 
-  let drag = false
+  let drag = null
 
   const onmousedown = (e) => {
-    drag = true
+    drag = [e.offsetX, e.offsetY]
   }
 
   const onmouseup = (e) => {
-    drag = false
+    drag = null
   }
 
+  // FIXME: Doesn't look like it pans correctly
   const onmousemove = (e) => {
-    if (drag.length) {
+    if (drag !== null) {
+      let newDrag = [e.offsetX, e.offsetY]
 
+      panX += (drag[0] - newDrag[0]) / canvas.width * scaleX
+      panY += (drag[1] - newDrag[1]) / canvas.height * scaleX * ratio
+
+      drag = newDrag
+
+      timedPut()
     }
   }
 
@@ -92,8 +100,8 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
   canvas.addEventListener('mousewheel', onscroll, false);
   canvas.addEventListener('DOMMouseScroll', onscroll, false);
   canvas.addEventListener('mousedown', onmousedown, false);
-  canvas.addEventListener('mouseup', onmouseup, false);
-  canvas.addEventListener('mousemove', onmousemove, false);
+  document.addEventListener('mouseup', onmouseup, false);
+  document.addEventListener('mousemove', onmousemove, false);
 
   benchmark.addEventListener('click', onbenchmark, false);
 
