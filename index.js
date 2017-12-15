@@ -73,11 +73,16 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     drag = [e.offsetX, e.offsetY]
   }
 
-  // TODO: Pan on resize so that result is visually equal
   const onmouseup = (e) => {
     drag = null
 
     if (canvasElement.width !== containerElement.offsetWidth || canvasElement.height !== containerElement.offsetHeight) {
+      let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+
+      panX += (containerElement.offsetWidth - canvasElement.width) / canvasElement.width * scaleX * r2
+      panY += (containerElement.offsetHeight - canvasElement.height) / canvasElement.height * scaleY
+      scaleY *= containerElement.offsetHeight / canvasElement.height
+
       timedPut()
     }
   }
