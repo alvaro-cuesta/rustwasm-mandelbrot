@@ -51,7 +51,7 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     forget(imagePtr)
   }
 
-  const onscroll = (e) => {
+  const onzoom = (e) => {
     const delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 
     let rx = e.offsetX / canvasElement.width
@@ -64,10 +64,12 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     scaleX = scaleX + scaleChange
 
     timedPut()
+
+    e.preventDefault()
   }
 
-  canvasElement.addEventListener('mousewheel', onscroll, false);
-  canvasElement.addEventListener('DOMMouseScroll', onscroll, false);
+  canvasElement.addEventListener('mousewheel', onzoom, false);
+  canvasElement.addEventListener('DOMMouseScroll', onzoom, false);
 
   let drag = null
 
