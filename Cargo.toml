@@ -7,3 +7,4 @@ authors = ["alvaro-cuesta <alvaro-cuesta@GitHub>"]
 crate-type = ["cdylib"]
 
 [dependencies]
+lazy_static = "1.0"

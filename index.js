@@ -32,7 +32,6 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 
     ctx.putImageData(new ImageData(imageBuffer, canvasElement.width, canvasElement.height), 0, 0)
 
-    forget(imagePtr)
   }
 
   const timedDrawCanvas = () => {
