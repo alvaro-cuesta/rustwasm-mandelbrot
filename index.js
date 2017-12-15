@@ -32,7 +32,7 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 .then(({ module, instance }) => {
   const { memory, draw, forget } = instance.exports
 
-  let maxIterations = parseInt(iterationsElement.value)
+  let maxIterations
 
   const timedPut = () => {
     const start = performance.now()
@@ -126,6 +126,6 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 
   benchmarkElement.addEventListener('click', onbenchmark, false);
 
-  timedPut()
+  oniterations()
 });
 
