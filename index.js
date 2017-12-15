@@ -7,9 +7,8 @@ const iterationsElement = document.getElementById('iterations')
 
 const ctx = canvas.getContext('2d')
 
-const ratio = 1 / 1.5
-
 let scaleX = 1.5
+let scaleY = 1
 let panX = -0.5
 let panY = 0
 
@@ -31,7 +30,7 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     canvasElement.width = containerElement.offsetWidth
     canvasElement.height = containerElement.offsetHeight
 
-    const imagePtr = draw(canvasElement.width, canvasElement.height, panX, panY, scaleX, ratio, maxIterations)
+    const imagePtr = draw(canvasElement.width, canvasElement.height, panX, panY, scaleX, scaleY, maxIterations)
 
     const length = canvasElement.width * canvasElement.height * 4
     const imageBuffer = new Uint8ClampedArray(memory.buffer)
@@ -48,11 +47,15 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     let rx = e.offsetX / canvasElement.width
     let ry = e.offsetY / canvasElement.height
 
-    let scaleChange = (delta > 0) ? -scaleX / 2 : scaleX / 2
+    let scaleChangeX = (delta > 0) ? -scaleX / 2 : scaleX / 2
+    let scaleChangeY = (delta > 0) ? -scaleY / 2 : scaleY / 2
 
-    panX = panX + scaleChange * (1 - rx * 2)
-    panY = panY + ratio * scaleChange * (1 - ry * 2)
-    scaleX = scaleX + scaleChange
+    // FIXME: Zoom is not correct (very noticeable when resizing canvas)
+    // FIXME: It zooms more than it dezooms
+    panX = panX + scaleChangeX * (1 - rx * 2)
+    panY = panY + scaleChangeY * (1 - ry * 2)
+    scaleX += scaleChangeX
+    scaleY += scaleChangeY
 
     timedPut()
 
@@ -68,6 +71,7 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     drag = [e.offsetX, e.offsetY]
   }
 
+  // TODO: Pan on resize so that result is visually equal
   const onmouseup = (e) => {
     drag = null
 
@@ -76,13 +80,12 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     }
   }
 
-  // FIXME: Doesn't look like it pans correctly
   const onmousemove = (e) => {
     if (drag !== null) {
       let newDrag = [e.offsetX, e.offsetY]
 
-      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX
-      panY += (drag[1] - newDrag[1]) / canvasElement.height * scaleX * ratio
+      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX * 2
+      panY += (drag[1] - newDrag[1]) / canvasElement.height * scaleY * 2
 
       drag = newDrag
 
