@@ -13,8 +13,9 @@ main();
 
 const BENCHMARK_TIMES = 100
 
-const canvas = document.getElementById('canvas')
-const benchmark = document.getElementById('benchmark')
+const canvasElement = document.getElementById('canvas')
+const benchmarkElement = document.getElementById('benchmark')
+const iterationsElement = document.getElementById('iterations')
 
 const ctx = canvas.getContext('2d')
 
@@ -30,6 +31,8 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 .then(({ module, instance }) => {
   const { memory, draw, forget } = instance.exports
 
+  let maxIterations = parseInt(iterationsElement.value)
+
   const timedPut = () => {
     const start = performance.now()
     put()
@@ -37,13 +40,13 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
   }
 
   const put = () => {
-    const imagePtr = draw(canvas.width, canvas.height, panX, panY, scaleX, ratio, 300)
+    const imagePtr = draw(canvasElement.width, canvasElement.height, panX, panY, scaleX, ratio, maxIterations)
 
-    const length = canvas.width * canvas.height * 4
+    const length = canvasElement.width * canvasElement.height * 4
     const imageBuffer = new Uint8ClampedArray(memory.buffer)
       .slice(imagePtr, imagePtr + length)
 
-    ctx.putImageData(new ImageData(imageBuffer, canvas.width, canvas.height), 0, 0)
+    ctx.putImageData(new ImageData(imageBuffer, canvasElement.width, canvasElement.height), 0, 0)
 
     forget(imagePtr)
   }
@@ -51,8 +54,8 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
   const onscroll = (e) => {
     const delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 
-    let rx = e.offsetX / canvas.width
-    let ry = e.offsetY / canvas.height
+    let rx = e.offsetX / canvasElement.width
+    let ry = e.offsetY / canvasElement.height
 
     let scaleChange = (delta > 0) ? -scaleX / 2 : scaleX / 2
 
@@ -62,6 +65,9 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 
     timedPut()
   }
+
+  canvasElement.addEventListener('mousewheel', onscroll, false);
+  canvasElement.addEventListener('DOMMouseScroll', onscroll, false);
 
   let drag = null
 
@@ -78,13 +84,18 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     if (drag !== null) {
       let newDrag = [e.offsetX, e.offsetY]
 
-      panX += (drag[0] - newDrag[0]) / canvas.width * scaleX
-      panY += (drag[1] - newDrag[1]) / canvas.height * scaleX * ratio
+      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX
+      panY += (drag[1] - newDrag[1]) / canvasElement.height * scaleX * ratio
 
       drag = newDrag
 
       timedPut()
     }
+  }
+
+  const oniterations = () => {
+    maxIterations = parseInt(iterationsElement.value)
+    timedPut()
   }
 
   const onbenchmark = () => {
@@ -97,13 +108,13 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     console.log(`${BENCHMARK_TIMES} renders: ${performance.now() - start}ms`)
   }
 
-  canvas.addEventListener('mousewheel', onscroll, false);
-  canvas.addEventListener('DOMMouseScroll', onscroll, false);
-  canvas.addEventListener('mousedown', onmousedown, false);
+  canvasElement.addEventListener('mousedown', onmousedown, false);
   document.addEventListener('mouseup', onmouseup, false);
   document.addEventListener('mousemove', onmousemove, false);
 
-  benchmark.addEventListener('click', onbenchmark, false);
+  iterationsElement.addEventListener('input', oniterations, false);
+
+  benchmarkElement.addEventListener('click', onbenchmark, false);
 
   timedPut()
 });
