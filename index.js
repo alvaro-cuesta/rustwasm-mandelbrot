@@ -7,26 +7,20 @@ const iterationsElement = document.getElementById('iterations')
 
 const ctx = canvas.getContext('2d')
 
-let scaleX = 1.5
-let scaleY = 1
-let panX = -0.5
-let panY = 0
-
 fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 .then(response => response.arrayBuffer())
 .then(bytes => WebAssembly.instantiate(bytes, {}))
 .then(({ module, instance }) => {
   const { memory, draw, forget } = instance.exports
 
-  let maxIterations
+  let scaleX = 1.5
+  let scaleY = 1
+  let panX = -0.5
+  let panY = 0
 
-  const timedPut = () => {
-    const start = performance.now()
-    put()
-    console.log(`Render: ${performance.now() - start}ms`)
-  }
+  const drawCanvas = () => {
+    let maxIterations = parseInt(iterationsElement.value)
 
-  const put = () => {
     canvasElement.width = containerElement.offsetWidth
     canvasElement.height = containerElement.offsetHeight
 
@@ -41,8 +35,15 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     forget(imagePtr)
   }
 
+  const timedDrawCanvas = () => {
+    const start = performance.now()
+    drawCanvas()
+    console.log(`Render: ${performance.now() - start}ms`)
+  }
+
+  // Zooming
   const onzoom = (e) => {
-    const delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+    const delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)))
 
     let rx = e.offsetX / canvasElement.width
     let ry = e.offsetY / canvasElement.height
@@ -51,15 +52,15 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     let scaleChangeX = (delta > 0) ? -scaleX / 3 : scaleX / 2
     let scaleChangeY = (delta > 0) ? -scaleY / 3 : scaleY / 2
 
-    let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+    let canvasRatio = canvasElement.width / canvasElement.height * (scaleY / scaleX)
 
     // FIXME: Zoom is not correct (very noticeable when resizing canvas)
-    panX = panX + scaleChangeX * (1 - rx * 2) * r2
+    panX = panX + scaleChangeX * (1 - rx * 2) * canvasRatio
     panY = panY + scaleChangeY * (1 - ry * 2)
     scaleX += scaleChangeX
     scaleY += scaleChangeY
 
-    timedPut()
+    timedDrawCanvas()
 
     e.preventDefault()
   }
@@ -67,64 +68,48 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
   canvasElement.addEventListener('mousewheel', onzoom, false);
   canvasElement.addEventListener('DOMMouseScroll', onzoom, false);
 
-  let drag = null
-
-  const onmousedown = (e) => {
-    drag = [e.offsetX, e.offsetY]
-  }
-
-  const onmouseup = (e) => {
-    drag = null
-
+  // Resizing
+  document.addEventListener('mouseup', (e) => {
     if (canvasElement.width !== containerElement.offsetWidth || canvasElement.height !== containerElement.offsetHeight) {
-      let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+      let canvasRatio = canvasElement.width / canvasElement.height * (scaleY / scaleX)
 
-      panX += (containerElement.offsetWidth - canvasElement.width) / canvasElement.width * scaleX * r2
+      panX += (containerElement.offsetWidth - canvasElement.width) / canvasElement.width * scaleX * canvasRatio
       panY += (containerElement.offsetHeight - canvasElement.height) / canvasElement.height * scaleY
       scaleY *= containerElement.offsetHeight / canvasElement.height
 
-      timedPut()
+      timedDrawCanvas()
     }
-  }
+  }, false);
 
-  const onmousemove = (e) => {
-    if (drag !== null) {
-      let newDrag = [e.offsetX, e.offsetY]
+  // Panning
+  document.addEventListener('mousemove', (e) => {
+    if (e.target === canvasElement && e.buttons & 1) {
+      let canvasRatio = canvasElement.width / canvasElement.height * (scaleY / scaleX)
 
-      let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+      panX -= e.movementX * 2 / canvasElement.width * scaleX * canvasRatio
+      panY -= e.movementY * 2 / canvasElement.height * scaleY
 
-      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX * 2 * r2
-      panY += (drag[1] - newDrag[1]) / canvasElement.height * scaleY * 2
-
-      drag = newDrag
-
-      timedPut()
+      timedDrawCanvas()
     }
-  }
+  }, false);
 
-  const oniterations = () => {
-    maxIterations = parseInt(iterationsElement.value)
-    timedPut()
-  }
+  // Iteration control
+  iterationsElement.addEventListener('input', () => {
+    timedDrawCanvas()
+  }, false);
 
-  const onbenchmark = () => {
+  // Benchmark control
+  benchmarkElement.addEventListener('click', () => {
     const start = performance.now()
 
     for (let i = 0; i < BENCHMARK_TIMES; i++) {
-      put()
+      drawCanvas()
     }
 
     console.log(`${BENCHMARK_TIMES} renders: ${performance.now() - start}ms`)
-  }
+  }, false);
 
-  canvasElement.addEventListener('mousedown', onmousedown, false);
-  document.addEventListener('mouseup', onmouseup, false);
-  document.addEventListener('mousemove', onmousemove, false);
-
-  iterationsElement.addEventListener('input', oniterations, false);
-
-  benchmarkElement.addEventListener('click', onbenchmark, false);
-
-  oniterations()
+  // Initial paint
+  timedDrawCanvas()
 });
 
