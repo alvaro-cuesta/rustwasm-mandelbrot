@@ -47,13 +47,13 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     let rx = e.offsetX / canvasElement.width
     let ry = e.offsetY / canvasElement.height
 
-    let scaleChangeX = (delta > 0) ? -scaleX / 2 : scaleX / 2
-    let scaleChangeY = (delta > 0) ? -scaleY / 2 : scaleY / 2
+    // HACK: I'm not sure what I'm doing
+    let scaleChangeX = (delta > 0) ? -scaleX / 3 : scaleX / 2
+    let scaleChangeY = (delta > 0) ? -scaleY / 3 : scaleY / 2
 
     let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
 
     // FIXME: Zoom is not correct (very noticeable when resizing canvas)
-    // FIXME: It zooms more than it dezooms
     panX = panX + scaleChangeX * (1 - rx * 2) * r2
     panY = panY + scaleChangeY * (1 - ry * 2)
     scaleX += scaleChangeX
