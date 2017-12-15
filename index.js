@@ -11,7 +11,11 @@ function main() {
 main();
 */
 
+const BENCHMARK_TIMES = 100
+
 const canvas = document.getElementById('canvas')
+const benchmark = document.getElementById('benchmark')
+
 const ctx = canvas.getContext('2d')
 
 const ratio = 1 / 1.5
@@ -20,14 +24,17 @@ let scaleX = 1.5
 let panX = -0.5
 let panY = 0
 
-canvas.addEventListener('mousewheel', onscroll, false);
-canvas.addEventListener('DOMMouseScroll', onscroll, false);
-
 fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
 .then(response => response.arrayBuffer())
 .then(bytes => WebAssembly.instantiate(bytes, {}))
 .then(({ module, instance }) => {
   const { memory, draw, forget } = instance.exports
+
+  const timedPut = () => {
+    const start = performance.now()
+    put()
+    console.log(`Render: ${performance.now() - start}ms`)
+  }
 
   const put = () => {
     const imagePtr = draw(canvas.width, canvas.height, panX, panY, scaleX, ratio, 300)
@@ -53,7 +60,7 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     panY = panY + ratio * scaleChange * (1 - ry * 2)
     scaleX = scaleX + scaleChange
 
-    put(memory, draw)
+    timedPut()
   }
 
   let drag = false
@@ -72,12 +79,24 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     }
   }
 
+  const onbenchmark = () => {
+    const start = performance.now()
+
+    for (let i = 0; i < BENCHMARK_TIMES; i++) {
+      put()
+    }
+
+    console.log(`${BENCHMARK_TIMES} renders: ${performance.now() - start}ms`)
+  }
+
   canvas.addEventListener('mousewheel', onscroll, false);
   canvas.addEventListener('DOMMouseScroll', onscroll, false);
   canvas.addEventListener('mousedown', onmousedown, false);
   canvas.addEventListener('mouseup', onmouseup, false);
   canvas.addEventListener('mousemove', onmousemove, false);
 
-  put(memory, draw)
+  benchmark.addEventListener('click', onbenchmark, false);
+
+  timedPut()
 });
 
