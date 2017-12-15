@@ -50,9 +50,11 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     let scaleChangeX = (delta > 0) ? -scaleX / 2 : scaleX / 2
     let scaleChangeY = (delta > 0) ? -scaleY / 2 : scaleY / 2
 
+    let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+
     // FIXME: Zoom is not correct (very noticeable when resizing canvas)
     // FIXME: It zooms more than it dezooms
-    panX = panX + scaleChangeX * (1 - rx * 2)
+    panX = panX + scaleChangeX * (1 - rx * 2) * r2
     panY = panY + scaleChangeY * (1 - ry * 2)
     scaleX += scaleChangeX
     scaleY += scaleChangeY
@@ -84,7 +86,9 @@ fetch('/target/wasm32-unknown-unknown/release/wasm_test.wasm')
     if (drag !== null) {
       let newDrag = [e.offsetX, e.offsetY]
 
-      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX * 2
+      let r2 = canvasElement.width / canvasElement.height * (scaleY / scaleX)
+
+      panX += (drag[0] - newDrag[0]) / canvasElement.width * scaleX * 2 * r2
       panY += (drag[1] - newDrag[1]) / canvasElement.height * scaleY * 2
 
       drag = newDrag
