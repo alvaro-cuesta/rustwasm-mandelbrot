@@ -1,16 +1,3 @@
-/*var Module = {
-  wasmBinaryFile: "wasm-test.wasm",
-  onRuntimeInitialized: main,
-};
-
-function main() {
-  var getData = Module.cwrap('get_data', 'string', []);
-  console.log(getData());
-};
-
-main();
-*/
-
 const BENCHMARK_TIMES = 100
 
 const containerElement = document.getElementById('container')
